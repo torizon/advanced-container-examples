@@ -10,13 +10,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /src
 COPY ./src/hello.cc .
 
-RUN if [ "$TARGETARCH" = "arm64" ]; then \
-      echo "Building for ARM64 architecture..."; \
-      gcc hello.cc -o hello; \
-    else \
-      echo "Building for x86_64 architecture..."; \
-      gcc hello.cc -o hello; \
-    fi
+RUN gcc hello.cc -o hello
 
 FROM debian:bookworm
 
