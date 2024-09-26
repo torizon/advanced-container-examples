@@ -1,0 +1,31 @@
+FROM --platform=$BUILDPLATFORM alpine:3.18 as builder
+
+ARG TARGETPLATFORM
+ARG TARGETARCH
+
+RUN apk add --no-cache \
+    g++ \
+    make
+
+WORKDIR /src
+COPY ./src/hello.cc .
+
+RUN if [ "$TARGETARCH" = "arm64" ]; then \
+      echo "Building for ARM64 architecture..."; \
+      g++ hello.cc -o hello; \
+    else \
+      echo "Building for x86_64 architecture..."; \
+      g++ hello.cc -o hello; \
+    fi
+
+FROM --platform=$TARGETPLATFORM alpine:3.18
+
+ARG TARGETARCH
+
+LABEL maintainer="Leonardo Held" \
+      description="Multiarch Docker image with Hello World (Alpine)" \
+      architecture="$TARGETARCH"
+
+COPY --from=builder /src/hello /usr/local/bin/hello
+
+ENTRYPOINT ["/usr/local/bin/hello"]

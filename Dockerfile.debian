@@ -1,0 +1,31 @@
+FROM debian:bookworm-slim as builder
+
+ARG TARGETPLATFORM
+ARG TARGETARCH
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    make
+
+WORKDIR /src
+COPY ./src/hello.cc .
+
+RUN if [ "$TARGETARCH" = "arm64" ]; then \
+      echo "Building for ARM64 architecture..."; \
+      gcc hello.cc -o hello; \
+    else \
+      echo "Building for x86_64 architecture..."; \
+      gcc hello.cc -o hello; \
+    fi
+
+FROM debian:bookworm
+
+ARG TARGETARCH
+
+LABEL maintainer="Leonardo Held" \
+      description="Multiarch Docker image with Hello World" \
+      architecture="$TARGETARCH"
+
+COPY --from=builder /src/hello /usr/local/bin/hello
+
+ENTRYPOINT ["/usr/local/bin/hello"]

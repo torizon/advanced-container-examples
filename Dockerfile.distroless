@@ -1,0 +1,17 @@
+FROM alpine:3.18 as builder
+
+RUN apk add --no-cache \
+    g++ \
+    musl-dev \
+    make
+
+WORKDIR /src
+COPY ./src/hello.cc .
+
+RUN g++ hello.cc -o hello -static
+
+FROM gcr.io/distroless/static-debian11
+
+COPY --from=builder /src/hello /usr/local/bin/hello
+
+ENTRYPOINT ["/usr/local/bin/hello"]
